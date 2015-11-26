@@ -3,16 +3,21 @@ package tsinghua.mediatech.rafaelzig.pixelme;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,8 +26,10 @@ import java.util.Date;
 
 public class MainActivity extends AppCompatActivity
 {
-	static final int REQUEST_IMAGE_CAPTURE = 1;
+	static final  int REQUEST_IMAGE_CAPTURE = 1;
+	private final int BLOCK_SIZE            = 16;
 	String mCurrentPhotoPath;
+	private int bits;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -31,6 +38,26 @@ public class MainActivity extends AppCompatActivity
 		setContentView(R.layout.activity_main);
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
+
+		SeekBar skbBits = (SeekBar) findViewById(R.id.skbBits);
+		final TextView lblBits = (TextView) findViewById(R.id.lblBits);
+
+		skbBits.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+		{
+			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+			{
+				bits = progress + 1;
+				lblBits.setText(bits + " bits per Color");
+			}
+
+			public void onStartTrackingTouch(SeekBar seekBar)
+			{
+			}
+
+			public void onStopTrackingTouch(SeekBar seekBar)
+			{
+			}
+		});
 	}
 
 	public void dispatchTakePictureIntent(View v)
@@ -56,7 +83,7 @@ public class MainActivity extends AppCompatActivity
 	private File createImageFile() throws IOException
 	{
 		// Create an image file name
-		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+		String timeStamp = SimpleDateFormat.getDateTimeInstance().format(new Date());
 		String prefix = "PixelME_" + timeStamp;
 		File directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
 		File image = File.createTempFile(prefix, ".jpg", directory);
@@ -86,8 +113,8 @@ public class MainActivity extends AppCompatActivity
 
 		// Get the dimensions of the bitmap
 		BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-//		bmOptions.inJustDecodeBounds = true;
-		Bitmap image = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+		bmOptions.inJustDecodeBounds = true;
+		BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
 		int photoW = bmOptions.outWidth;
 		int photoH = bmOptions.outHeight;
 
@@ -97,10 +124,34 @@ public class MainActivity extends AppCompatActivity
 		// Decode the image file into a Bitmap sized to fill the View
 		bmOptions.inJustDecodeBounds = false;
 		bmOptions.inSampleSize = scaleFactor;
+		bmOptions.inMutable = true;
 
-		image = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
-		image = transform(image, DitherFilter.dither90Halftone6x6Matrix, 2, true);
-		mImageView.setImageBitmap(image);
+		Bitmap image = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+		image = ColorUtils.transform(image, BLOCK_SIZE, bits);
+		mImageView.setImageBitmap(Bitmap.createBitmap(image, 0, 0, image.getWidth(), image.getHeight(), getMatrix(), true));
+	}
+
+	@NonNull
+	private Matrix getMatrix()
+	{
+		Matrix matrix = new Matrix();
+		int orientation = 1;
+
+		try
+		{
+			orientation = new ExifInterface(mCurrentPhotoPath).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		if (orientation == ExifInterface.ORIENTATION_ROTATE_90)
+			matrix.postRotate(90);
+		else if (orientation == ExifInterface.ORIENTATION_ROTATE_270)
+			matrix.postRotate(270);
+
+		return matrix;
 	}
 
 	private void galleryAddPic()
@@ -134,28 +185,5 @@ public class MainActivity extends AppCompatActivity
 		}
 
 		return super.onOptionsItemSelected(item);
-	}
-
-	private static Bitmap transform(Bitmap input, int[] matrix, int levels, boolean isColor)
-	{
-		int width = input.getWidth();
-		int height = input.getHeight();
-
-		DitherFilter df = new DitherFilter();
-		df.setLevels(levels);
-		df.setMatrix(matrix);
-		df.setColorDither(isColor);
-
-		Bitmap output = Bitmap.createBitmap(width, height, input.getConfig());
-
-		for (int x = 0; x < width; x++)
-		{
-			for (int y = 0; y < height; y++)
-			{
-				output.setPixel(x, y, df.filterRGB(x, y, input.getPixel(x, y)));
-			}
-		}
-
-		return output;
 	}
 }
