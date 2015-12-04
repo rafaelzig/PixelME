@@ -33,9 +33,26 @@
             android:longClickable="false"/>
 
     <SeekBar
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/skbBits"
+            android:max="7"
+            android:layout_above="@+id/skbPixelSize"
+            android:layout_toStartOf="@+id/lblBits"
+            android:progress="2"/>
+
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblBits"
+            android:layout_above="@+id/lblPixelSize"
+            android:layout_alignParentEnd="true"
+            android:text="2 Bits per Color"
+            />
+    <SeekBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/skbPixelSize"
             android:max="7"
             android:layout_alignParentBottom="true"
             android:layout_alignParentStart="true"
@@ -45,10 +62,9 @@
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/lblBits"
+            android:id="@+id/lblPixelSize"
             android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true"
             android:text="2 Bits per Color"
             />
-
 </RelativeLayout>
