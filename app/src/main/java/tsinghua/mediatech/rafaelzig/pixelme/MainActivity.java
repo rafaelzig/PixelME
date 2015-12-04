@@ -24,12 +24,12 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class MainActivity extends AppCompatActivity
+public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener
 {
-	static final  int REQUEST_IMAGE_CAPTURE = 1;
-	private final int BLOCK_SIZE            = 16;
 	String mCurrentPhotoPath;
-	private int bits;
+	static final  int REQUEST_IMAGE_CAPTURE = 1;
+	private SeekBar skbPixelSize, skbBits;
+	private TextView lblPixelSize, lblBitsPerColor;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -39,28 +39,15 @@ public class MainActivity extends AppCompatActivity
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
 
-		SeekBar skbBits = (SeekBar) findViewById(R.id.skbBits);
-		final TextView lblBits = (TextView) findViewById(R.id.lblBits);
-
-		skbBits.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
-		{
-			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
-			{
-				bits = progress + 1;
-				lblBits.setText(bits + " bits per Color");
-			}
-
-			public void onStartTrackingTouch(SeekBar seekBar)
-			{
-			}
-
-			public void onStopTrackingTouch(SeekBar seekBar)
-			{
-			}
-		});
+		skbBits = (SeekBar) findViewById(R.id.skbBits);
+		skbBits.setOnSeekBarChangeListener(this);
+		lblBitsPerColor = (TextView) findViewById(R.id.lblBitsPerColor);
+		skbPixelSize = (SeekBar) findViewById(R.id.skbPixelSize);
+		skbPixelSize.setOnSeekBarChangeListener(this);
+		lblPixelSize = (TextView) findViewById(R.id.lblPixelSize);
 	}
 
-	public void dispatchTakePictureIntent(View v)
+	public void onClick(View v)
 	{
 		Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 		// Ensure that there's a camera activity to handle the intent
@@ -127,7 +114,7 @@ public class MainActivity extends AppCompatActivity
 		bmOptions.inMutable = true;
 
 		Bitmap image = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
-		image = ColorUtils.transform(image, BLOCK_SIZE, bits);
+		image = ColorUtils.transform(image, Integer.parseInt(lblPixelSize.getText().toString()), Integer.parseInt(lblBitsPerColor.getText().toString()));
 		mImageView.setImageBitmap(Bitmap.createBitmap(image, 0, 0, image.getWidth(), image.getHeight(), getMatrix(), true));
 	}
 
@@ -185,5 +172,25 @@ public class MainActivity extends AppCompatActivity
 		}
 
 		return super.onOptionsItemSelected(item);
+	}
+
+	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+	{
+		if (seekBar.equals(skbBits))
+		{
+			lblBitsPerColor.setText(String.valueOf(progress + 1));
+		}
+		else
+		{
+			lblPixelSize.setText(String.valueOf((int) Math.pow(2, progress + 1)));
+		}
+	}
+
+	public void onStartTrackingTouch(SeekBar seekBar)
+	{
+	}
+
+	public void onStopTrackingTouch(SeekBar seekBar)
+	{
 	}
 }

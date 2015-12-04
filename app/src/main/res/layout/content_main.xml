@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:showIn="@layout/activity_main"
-    tools:context="tsinghua.mediatech.rafaelzig.pixelme.MainActivity"
-    android:columnCount="22"
-    android:rowCount="45">
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        tools:showIn="@layout/activity_main"
+        tools:context="tsinghua.mediatech.rafaelzig.pixelme.MainActivity"
+        android:columnCount="22"
+        android:rowCount="45">
 
     <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Take Picture"
             android:id="@+id/btnTakePic"
-            android:onClick="dispatchTakePictureIntent"
+            android:onClick="onClick"
             android:nestedScrollingEnabled="true"
             android:layout_above="@+id/skbBits"
             android:layout_centerHorizontal="true"/>
@@ -38,33 +38,49 @@
             android:id="@+id/skbBits"
             android:max="7"
             android:layout_above="@+id/skbPixelSize"
-            android:layout_toStartOf="@+id/lblBits"
+            android:layout_toStartOf="@+id/lblBitsPerColor"
             android:progress="2"/>
 
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblBitsPerColor"
+            android:layout_above="@+id/lblPixelSize"
+            android:layout_toStartOf="@+id/lblBits"
+            android:text="2"
+            />
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/lblBits"
             android:layout_above="@+id/lblPixelSize"
             android:layout_alignParentEnd="true"
-            android:text="2 Bits per Color"
+            android:text=" Bits per Color"
             />
     <SeekBar
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/skbPixelSize"
-            android:max="7"
+            android:max="5"
             android:layout_alignParentBottom="true"
             android:layout_alignParentStart="true"
-            android:layout_toStartOf="@+id/lblBits"
-            android:progress="2"/>
+            android:layout_toStartOf="@+id/lblBitsPerColor"
+            android:progress="4"/>
 
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/lblPixelSize"
             android:layout_alignParentBottom="true"
+            android:layout_toStartOf="@+id/lblPixel"
+            android:text="16"
+            />
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblPixel"
+            android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true"
-            android:text="2 Bits per Color"
+            android:text=" Pixels"
             />
 </RelativeLayout>
