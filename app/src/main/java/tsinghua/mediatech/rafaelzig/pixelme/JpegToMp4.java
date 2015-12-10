@@ -3,38 +3,69 @@ package tsinghua.mediatech.rafaelzig.pixelme;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Vector;
-import android.content.Context;
-import android.graphics.BitmapFactory;
-import android.os.Bundle;
+
 import android.os.Environment;
-import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
-import org.jcodec.api.android.SequenceEncoder;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Vector;
 
 /**
- * Created by gabri on 12/4/2015.
+ * Created by gabri on 12/10/2015.
  */
 public class JpegToMp4 {
-
-    private File                _dir;
-    private String              _videoName;
-    private Vector<File>        _imgFiles;
-
+    private File _dir = null;
+    private String              _videoName = null;
+    private Vector<File> _imgFiles;
+    private File        _outDir;
+    /**
+     *
+     * The contructor with the precise images path.
+     *
+     * @param directory the images and output directory.
+     * @param videoName the video name.
+     * @param imagesPath the path of all the pictures.
+     */
     public JpegToMp4(String directory, String videoName, Vector<String> imagesPath) {
         _dir = new File(directory);
         _videoName = videoName;
         setImageFiles(imagesPath);
     }
 
+    /**
+     *
+     * The constructor with variable images path.
+     *
+     * @param videoName the output video name.
+     * @param imagesPath the images paths.
+     */
+    public JpegToMp4(String videoName, Vector<String> imagesPath) {
+        _videoName = videoName;
+        setImageFiles(imagesPath);
+    }
+
+    /**
+     *
+     * The contructor with the directory containing only the images.
+     *
+     * @param directory the pictures directory.
+     * @param videoName the video name.
+     */
     public JpegToMp4(String directory, String videoName) {
         _dir = new File(directory);
         _imgFiles = new Vector<>(Arrays.asList(_dir.listFiles()));
         _videoName = videoName;
     }
 
-    public void setVideoName(String vname) {
-        _videoName = vname;
+    public JpegToMp4(File outDir, String directory, String videoName) {
+        _dir = new File(directory);
+        _imgFiles = new Vector<>(Arrays.asList(_dir.listFiles()));
+        _videoName = videoName;
+        _outDir = outDir;
+    }
+
+    public void setVideoName(String videoName) {
+        _videoName = videoName;
     }
 
     public String getVideoName(){
@@ -43,8 +74,7 @@ public class JpegToMp4 {
 
     public void setDir(String directory, boolean imgHere) {
         _dir = new File(directory);
-        if (imgHere == true) _imgFiles = new Vector<>(Arrays.asList(_dir.listFiles()));
-
+        if (imgHere) _imgFiles = new Vector<>(Arrays.asList(_dir.listFiles()));
     }
 
     public File getDir() {
@@ -59,55 +89,28 @@ public class JpegToMp4 {
     }
 
     public void addImage(String imgName) {
-        _imgFiles.add(new File(imgName));
+        _imgFiles.add(new File((_dir != null ? _dir + File.separator + imgName : imgName)));
     }
 
     /**
      * It will create a mp4 video with the images contained in the directory attribute with the fps send in parameter.
-     * @param fps
+     * @param fps the frame per second (I advise you to not send less than 6).
      */
     public void imagesToVideo(int fps) {
-         //	FOR ANDROID
-         String dcim = _dir.getPath();
-         System.out.println(dcim + File.separator + "video.mp4");
-         try {
-            System.out.println("CREATE FILE !");
-            File videoFile = new File(dcim + File.separator + "video.mp4");
-//                 System.out.println("FILE CREATED !");
-//                 if (file.createNewFile()) System.out.println("SUCCESS !");
-//                 else System.out.println("FAILURE !");
-//                 System.out.println(dcim+"/video.mp4");
-//                 System.out.println("SHOWN !");
-            SequenceEncoder enc = new SequenceEncoder(videoFile);
+        String dir = "";
+        if (_dir != null)
+            dir = _dir.getPath();
+        String vName = _videoName;
+        System.out.println(vName);
+        try {
+            File videoFile = new File(_outDir + File.separator + vName);
+            System.out.println(videoFile.toString());
+            AndroidMp4 enc = new AndroidMp4(videoFile, fps);
             for (File f : _imgFiles)
-                enc.encodeImage(BitmapFactory.decodeFile(f.getPath() + f.getName()));
+                enc.encodeImage(f);
             enc.finish();
-         } catch (java.io.IOException e) {
+        } catch (java.io.IOException e) {
             System.err.println(e.getMessage());
-         }
-
-
-            // FOR COMPUTER (AWT REPLACED BY ANDROID)
-//            File file = new File(dcim + File.separator + "video.mp4");
-//            if (file.createNewFile()) System.out.println("SUCCESS !");
-//    //          SequenceEncoder enc = new SequenceEncoder(file);
-//            Mp4Encoder encod = new Mp4Encoder(file);
-//            BufferedImage image = ImageIO.read(new File(dcim + "/test1.jpg"));
-//            BufferedImage image2 = ImageIO.read(new File(dcim + "/test2.jpg"));
-//
-//            for (int i = 0 ; i < 20 ; i++) {
-//                encod.encodeImage(image);
-//            }
-//            for (int i = 0 ; i < 20 ; i++) {
-//                encod.encodeImage(image2);
-//            }
-    //          enc.encodeImage(BitmapFactory.decodeFile(dcim+ "/test1.jpg"));
-    //          enc.encodeImage(BitmapFactory.decodeFile(dcim + "/test2.jpg"));
-//            encod.finish();
-//            System.out.println("DONE !");
-//        } catch (java.io.IOException e) {
-//            System.out.println("ERROR !");
-//            System.out.println(e.getMessage());
+        }
     }
-
 }
