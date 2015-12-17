@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">PixelME</string>
     <string name="action_settings">Settings</string>
+    <string name="jpeg_to_mp4">Jpeg to Mp4</string>
+    <string name="make_video">Make Video</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="test_date">Test Date</string>
+    <string name="delete">Delete</string>
 </resources>
