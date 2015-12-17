@@ -28,6 +28,7 @@ import org.jcodec.common.model.Picture;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
+import org.jcodec.scale.Yuv420jToRgb;
 
 /**
  * This class is part of JCodec ( www.jcodec.org ) This software is distributed
