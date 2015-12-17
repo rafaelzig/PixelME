@@ -126,6 +126,14 @@ public class AndroidMp4 {
 
     }
 
+    public Bitmap yuv420ToRgb(int width, int height, int[][] data) {
+        Picture pic = new Picture(width, height, data, ColorSpace.YUV420);
+        Picture dst = new Picture(width, height, null, ColorSpace.RGB);
+        Yuv420jToRgb trans = new Yuv420jToRgb();
+        trans.transform(pic, dst);
+        return BitmapUtil.toBitmap(dst);
+    }
+
     public void finish() throws IOException {
         outTrack.addSampleEntry(H264Utils.createMOVSampleEntry(spsList, ppsList, 0));
 
