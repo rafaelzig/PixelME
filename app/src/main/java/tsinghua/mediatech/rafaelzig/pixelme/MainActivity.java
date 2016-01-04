@@ -1,196 +1,73 @@
 package tsinghua.mediatech.rafaelzig.pixelme;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
-import android.media.ExifInterface;
-import android.net.Uri;
-import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.SeekBar;
-import android.widget.TextView;
+import android.widget.ListView;
+import tsinghua.mediatech.rafaelzig.pixelme.camera.CameraActivity;
 
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.Map;
 
-public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener
+public class MainActivity extends AppCompatActivity implements FeedAdapterListener
 {
-	String mCurrentPhotoPath;
-	static final  int REQUEST_IMAGE_CAPTURE = 1;
-	private SeekBar skbPixelSize, skbBits;
-	private TextView lblPixelSize, lblBitsPerColor;
+	ListView listView;
+	DBHelper mydb;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
-		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-		setSupportActionBar(toolbar);
+		setContentView(R.layout.activity_main2);
 
-		skbBits = (SeekBar) findViewById(R.id.skbBits);
-		skbBits.setOnSeekBarChangeListener(this);
-		lblBitsPerColor = (TextView) findViewById(R.id.lblBitsPerColor);
-		skbPixelSize = (SeekBar) findViewById(R.id.skbPixelSize);
-		skbPixelSize.setOnSeekBarChangeListener(this);
-		lblPixelSize = (TextView) findViewById(R.id.lblPixelSize);
-	}
+		listView = (ListView) findViewById(R.id.feed);
 
-	public void onClick(View v)
-	{
-		Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-		// Ensure that there's a camera activity to handle the intent
-		if (takePictureIntent.resolveActivity(getPackageManager()) != null)
-		{
-			// Create the File where the photo should go
-			try
-			{
-				Uri uri = Uri.fromFile(createImageFile());
-				takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-				startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-			}
-		}
-	}
+		mydb = new DBHelper(this);
+/*
+        mydb.deleteAll();
 
-	private File createImageFile() throws IOException
-	{
-		// Create an image file name
-		String timeStamp = SimpleDateFormat.getDateTimeInstance().format(new Date());
-		String prefix = "PixelME_" + timeStamp;
-		File directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-		File image = File.createTempFile(prefix, ".jpg", directory);
+        mydb.insertEntry("android.resource://"+getPackageName()+ "/"+R.raw.video1);
+        mydb.insertEntry("android.resource://"+getPackageName()+ "/"+R.raw.video2);
+        mydb.insertEntry("android.resource://"+getPackageName()+ "/"+R.raw.video3);
+        mydb.insertEntry("android.resource://"+getPackageName()+ "/"+R.raw.video4);
+        mydb.insertEntry("android.resource://"+getPackageName()+ "/"+R.raw.video5);
 
-		// Save a file: path for use with ACTION_VIEW intents
-		mCurrentPhotoPath = image.getAbsolutePath();
-		return image;
-	}
+*/
 
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
-	{
-		if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK)
-		{
-			setImage();
-			galleryAddPic();
-		}
-	}
+		ArrayList<Map<String, String>> arrayList = mydb.getAllEntries();
 
-	private void setImage()
-	{
-		ImageView mImageView = (ImageView) findViewById(R.id.mImageView);
+		FeedAdapter feedAdapter = new FeedAdapter(this, arrayList);
+		feedAdapter.addFeedAdapterListener(this);
 
-		// Get the dimensions of the View
-		int targetW = mImageView.getWidth();
-		int targetH = mImageView.getHeight();
-
-		// Get the dimensions of the bitmap
-		BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-		bmOptions.inJustDecodeBounds = true;
-		BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
-		int photoW = bmOptions.outWidth;
-		int photoH = bmOptions.outHeight;
-
-		// Determine how much to scale down the image
-		int scaleFactor = Math.min(photoW / targetW, photoH / targetH);
-
-		// Decode the image file into a Bitmap sized to fill the View
-		bmOptions.inJustDecodeBounds = false;
-		bmOptions.inSampleSize = scaleFactor;
-		bmOptions.inMutable = true;
-
-		Bitmap image = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
-		image = ColorUtils.transform(image, Integer.parseInt(lblPixelSize.getText().toString()), Integer.parseInt(lblBitsPerColor.getText().toString()));
-		mImageView.setImageBitmap(Bitmap.createBitmap(image, 0, 0, image.getWidth(), image.getHeight(), getMatrix(), true));
-	}
-
-	@NonNull
-	private Matrix getMatrix()
-	{
-		Matrix matrix = new Matrix();
-		int orientation = 1;
-
-		try
-		{
-			orientation = new ExifInterface(mCurrentPhotoPath).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
-
-		if (orientation == ExifInterface.ORIENTATION_ROTATE_90)
-			matrix.postRotate(90);
-		else if (orientation == ExifInterface.ORIENTATION_ROTATE_270)
-			matrix.postRotate(270);
-
-		return matrix;
-	}
-
-	private void galleryAddPic()
-	{
-		Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-		Uri contentUri = Uri.fromFile(new File(mCurrentPhotoPath));
-		mediaScanIntent.setData(contentUri);
-		sendBroadcast(mediaScanIntent);
+		listView.setAdapter(feedAdapter);
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.menu_main, menu);
+		getMenuInflater().inflate(R.menu.menu_main2, menu);
 		return true;
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-
-		//noinspection SimplifiableIfStatement
-		if (id == R.id.action_settings)
+		switch (item.getItemId())
 		{
-			return true;
-		}
-
-		return super.onOptionsItemSelected(item);
-	}
-
-	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
-	{
-		if (seekBar.equals(skbBits))
-		{
-			lblBitsPerColor.setText(String.valueOf(progress + 1));
-		}
-		else
-		{
-			lblPixelSize.setText(String.valueOf((int) Math.pow(2, progress + 1)));
+			case R.id.camera:
+				Intent intent = new Intent(this, CameraActivity.class);
+				startActivity(intent);
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
 		}
 	}
 
-	public void onStartTrackingTouch(SeekBar seekBar)
+	@Override
+	public void didDeleteEntry(int entry_id)
 	{
-	}
-
-	public void onStopTrackingTouch(SeekBar seekBar)
-	{
+		mydb.deleteEntry(entry_id);
 	}
 }

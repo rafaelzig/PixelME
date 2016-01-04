@@ -1,10 +1,12 @@
-package tsinghua.mediatech.rafaelzig.pixelme;
+package tsinghua.mediatech.rafaelzig.pixelme.camera.dialog;
 
 import android.Manifest;
 import android.app.*;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v13.app.FragmentCompat;
+import tsinghua.mediatech.rafaelzig.pixelme.R;
+import tsinghua.mediatech.rafaelzig.pixelme.camera.Camera2BasicFragment;
 
 /**
  * Shows OK/Cancel confirmation dialog about camera permission.

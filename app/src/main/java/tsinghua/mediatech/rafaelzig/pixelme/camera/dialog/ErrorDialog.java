@@ -1,4 +1,4 @@
-package tsinghua.mediatech.rafaelzig.pixelme;
+package tsinghua.mediatech.rafaelzig.pixelme.camera.dialog;
 
 import android.app.Activity;
 import android.app.AlertDialog;

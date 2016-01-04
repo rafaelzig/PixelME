@@ -73,8 +73,8 @@ public class AndroidMp4 {
 
         // Encoder extra data ( SPS, PPS ) to be stored in a special place of
         // MP4
-        spsList = new ArrayList<ByteBuffer>();
-        ppsList = new ArrayList<ByteBuffer>();
+        spsList = new ArrayList<>();
+        ppsList = new ArrayList<>();
 //        this.ch = NIOUtils.writableFileChannel(out);
 //
 //        mux = new MP4Muxer(ch, Brand.MP4);
@@ -125,14 +125,6 @@ public class AndroidMp4 {
 //        frameNo++;
 
 
-    }
-
-    public Bitmap yuv420ToRgb(int width, int height, int[][] data) {
-        Picture pic = new Picture(width, height, data, ColorSpace.YUV420);
-        Picture dst = new Picture(width, height, null, ColorSpace.RGB);
-        Yuv420jToRgb trans = new Yuv420jToRgb();
-        trans.transform(pic, dst);
-        return BitmapUtil.toBitmap(dst);
     }
 
     public void finish() throws IOException {

@@ -1,4 +1,4 @@
-package tsinghua.mediatech.rafaelzig.pixelme;/**
+package tsinghua.mediatech.rafaelzig.pixelme.old;/**
  * Created by Zig on 21/11/2015.
  */
 
