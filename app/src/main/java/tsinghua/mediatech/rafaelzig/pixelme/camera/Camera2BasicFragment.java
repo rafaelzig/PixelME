@@ -23,6 +23,7 @@ import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.*;
 import android.widget.Toast;
+import tsinghua.mediatech.rafaelzig.pixelme.JpegToMp4;
 import tsinghua.mediatech.rafaelzig.pixelme.R;
 import tsinghua.mediatech.rafaelzig.pixelme.camera.component.ImageAdapter;
 import tsinghua.mediatech.rafaelzig.pixelme.camera.component.ImageSaver;
@@ -1035,6 +1036,8 @@ public class Camera2BasicFragment extends Fragment
 			}
 			case R.id.info:
 			{
+				JpegToMp4 jpegToMp4 = new JpegToMp4(new File(galleryFolder.getPath()), galleryFolder.getPath(), "test.mp4");
+//				jpegToMp4.imagesToVideo(Math.pow(galleryFolder.listFiles().length,2));
 				Activity activity = getActivity();
 				if (null != activity)
 				{
