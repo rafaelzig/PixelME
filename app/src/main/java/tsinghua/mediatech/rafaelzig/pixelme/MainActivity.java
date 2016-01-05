@@ -1,6 +1,8 @@
 package tsinghua.mediatech.rafaelzig.pixelme;
 
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -10,11 +12,13 @@ import android.widget.Toast;
 import tsinghua.mediatech.rafaelzig.pixelme.camera.CameraActivity;
 import tsinghua.mediatech.rafaelzig.pixelme.camera.CameraFragment;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements FeedAdapterListener
 {
+	public static final int REQUEST_CODE = 1;
 	ListView listView;
 	DBHelper mydb;
 
@@ -59,18 +63,25 @@ public class MainActivity extends AppCompatActivity implements FeedAdapterListen
 		switch (item.getItemId())
 		{
 			case R.id.camera:
-				Intent intent = new Intent(this, CameraActivity.class);
-				startActivity(intent);
+				openCameraActivity();
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
 		}
 	}
 
+	private void openCameraActivity()
+	{
+		File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES);
+		Intent intent = new Intent(this, CameraActivity.class);
+		startActivityForResult(intent, REQUEST_CODE);
+	}
+
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
-		if (resultCode == RESULT_OK && requestCode == 1234567) // Add a code here.....
+		// Check which request we're responding to and ensure the request was successful
+		if (requestCode == REQUEST_CODE && resultCode == RESULT_OK)
 		{
 			if (data.hasExtra(CameraFragment.FILE_LOCATION))
 			{

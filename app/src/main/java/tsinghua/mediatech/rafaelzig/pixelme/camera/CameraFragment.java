@@ -1118,16 +1118,21 @@ public class CameraFragment extends Fragment
 
 			clearImageGallery();
 
-			Activity activity = getActivity();
-			Intent intent = new Intent(activity, MainActivity.class);
-			intent.putExtra(FILE_LOCATION, outputFile.getAbsolutePath());
-			activity.setResult(Activity.RESULT_OK, intent);
-			activity.finish();
+			sendVideoToParent(outputFile.getAbsolutePath());
 		}
 		else
 		{
 			showToast("Please capture images first.");
 		}
+	}
+
+	private void sendVideoToParent(String filePath)
+	{
+		Activity activity = getActivity();
+		Intent intent = new Intent(activity, MainActivity.class);
+		intent.putExtra(FILE_LOCATION, filePath);
+		activity.setResult(Activity.RESULT_OK, intent);
+		activity.finish();
 	}
 
 	@Override
