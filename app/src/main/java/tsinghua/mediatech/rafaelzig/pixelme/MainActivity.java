@@ -79,9 +79,9 @@ public class MainActivity extends AppCompatActivity implements FeedAdapterListen
 		// Check which request we're responding to and ensure the request was successful
 		if (requestCode == REQUEST_CODE && resultCode == RESULT_OK)
 		{
-			if (data.hasExtra(CameraFragment.FILE_LOCATION))
+			if (data.hasExtra(CameraFragment.FILE_LOCATION_EXTRAS_KEY))
 			{
-				String uri = data.getExtras().getString(CameraFragment.FILE_LOCATION);
+				String uri = data.getExtras().getString(CameraFragment.FILE_LOCATION_EXTRAS_KEY);
 				mydb.insertEntry(uri);
 				feedAdapter.AddVideoToFeed(mydb.getLastEntry());
 			}

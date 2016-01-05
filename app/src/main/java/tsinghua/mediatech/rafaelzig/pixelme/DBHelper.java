@@ -23,7 +23,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
 
     /**
-     * @param context will require the context of the current main activity, just pass "this"
+     * @param context will require the context of the current main activity, just pass "this"!
      */
     public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);

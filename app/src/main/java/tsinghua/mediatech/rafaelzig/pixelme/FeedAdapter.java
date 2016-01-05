@@ -45,6 +45,9 @@ public class FeedAdapter extends BaseAdapter {
         listeners.add(listener);
     }
 
+    /**
+     * @param entry a Map from the database with uri, id and created fields
+     */
     public void AddVideoToFeed(Map<String, String> entry){
         data.add(0, entry);
         notifyDataSetChanged();
