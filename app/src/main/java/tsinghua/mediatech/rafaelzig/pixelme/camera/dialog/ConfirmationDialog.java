@@ -6,7 +6,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v13.app.FragmentCompat;
 import tsinghua.mediatech.rafaelzig.pixelme.R;
-import tsinghua.mediatech.rafaelzig.pixelme.camera.Camera2BasicFragment;
+import tsinghua.mediatech.rafaelzig.pixelme.camera.CameraFragment;
 
 /**
  * Shows OK/Cancel confirmation dialog about camera permission.
@@ -26,7 +26,7 @@ public class ConfirmationDialog extends DialogFragment
 					{
 						FragmentCompat.requestPermissions(parent,
 						                                  new String[]{Manifest.permission.CAMERA},
-						                                  Camera2BasicFragment.REQUEST_CAMERA_PERMISSION);
+						                                  CameraFragment.REQUEST_CAMERA_PERMISSION);
 					}
 				})
 				.setNegativeButton(android.R.string.cancel,

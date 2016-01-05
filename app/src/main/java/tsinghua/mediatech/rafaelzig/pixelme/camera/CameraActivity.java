@@ -14,7 +14,7 @@ public class CameraActivity extends Activity
 		if (savedInstanceState == null)
 		{
 			getFragmentManager().beginTransaction()
-			                    .replace(R.id.container, Camera2BasicFragment.newInstance())
+			                    .replace(R.id.container, CameraFragment.newInstance())
 			                    .commit();
 		}
 	}

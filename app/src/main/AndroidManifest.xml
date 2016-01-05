@@ -32,7 +32,6 @@
         <activity
                 android:name=".camera.CameraActivity"
                 android:theme="@style/MaterialTheme"
-                android:screenOrientation="portrait"
                 android:parentActivityName=".MainActivity">
 
             <meta-data

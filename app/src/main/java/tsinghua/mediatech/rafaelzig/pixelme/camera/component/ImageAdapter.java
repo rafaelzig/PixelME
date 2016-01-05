@@ -7,24 +7,26 @@ import com.bumptech.glide.Glide;
 import tsinghua.mediatech.rafaelzig.pixelme.R;
 
 import java.io.File;
+import java.util.LinkedList;
 
 /**
  * Created by Zig on 19/12/2015.
  */
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder>
 {
-	private File[]                    imageFiles;
-	private RecyclerViewClickPosition positionInterface;
+	private final LinkedList<String>        imagePaths;
+	private final RecyclerViewClickObserver observer;
 
-	ImageAdapter(File[] imageFiles)
+	public ImageAdapter(File[] galleryFolder, RecyclerViewClickObserver observer)
 	{
-		this.imageFiles = imageFiles;
-	}
+		imagePaths = new LinkedList<>();
 
-	public ImageAdapter(File[] imageFiles, RecyclerViewClickPosition positionInterface)
-	{
-		this(imageFiles);
-		this.positionInterface = positionInterface;
+		for (File file : galleryFolder)
+		{
+			imagePaths.addFirst(file.getAbsolutePath());
+		}
+
+		this.observer = observer;
 	}
 
 	@Override
@@ -37,17 +39,37 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder>
 	public void onBindViewHolder(ViewHolder holder, int position)
 	{
 		ImageView imageView = holder.getImageView();
-		File imageFile = imageFiles[position];
-		Glide.with(imageView.getContext()).load(imageFile).into(imageView);
+		Glide.with(imageView.getContext()).load(imagePaths.get(position)).into(imageView);
 	}
 
 	@Override
 	public int getItemCount()
 	{
-		return imageFiles.length;
+		return imagePaths.size();
 	}
 
-	class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener
+	public void addImage(String imagePath)
+	{
+		imagePaths.addFirst(imagePath);
+		notifyItemInserted(0);
+	}
+
+	public boolean removeImage(int position)
+	{
+		File image = new File(imagePaths.get(position));
+
+		if (image.delete())
+		{
+			imagePaths.remove(position);
+			notifyItemRemoved(position);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
 	{
 		private ImageView imageView;
 
@@ -56,7 +78,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder>
 			super(view);
 
 			view.setOnClickListener(this);
-			view.setOnLongClickListener(this);
 			imageView = (ImageView) view.findViewById(R.id.imageGalleryView);
 		}
 
@@ -68,22 +89,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder>
 		@Override
 		public void onClick(View v)
 		{
-			positionInterface.getRecyclerViewAdapterPosition(getAdapterPosition());
-		}
-
-		@Override
-		public boolean onLongClick(View v)
-		{
-			int position = getAdapterPosition();
-
-			if (imageFiles[position].delete())
-			{
-				notifyItemRemoved(position);
-				notifyItemRangeChanged(position, imageFiles.length);
-				return true;
-			}
-
-			return false;
+			observer.notifyImageHolderClicked(imagePaths.get(getAdapterPosition()));
 		}
 	}
 }

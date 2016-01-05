@@ -1,6 +1,7 @@
 package tsinghua.mediatech.rafaelzig.pixelme.camera;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.widget.ImageView;
@@ -23,6 +24,7 @@ public class SingleImageActivity extends Activity
 		getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 
 		ImageView imageView = new ImageView(this);
+		imageView.setBackgroundColor(Color.BLACK);
 		int width = displayMetrics.widthPixels;
 		int height = displayMetrics.heightPixels;
 		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(width, height);
@@ -30,8 +32,7 @@ public class SingleImageActivity extends Activity
 
 		setContentView(imageView);
 
-		File imageFile = new File(getIntent().getStringExtra(Camera2BasicFragment.IMAGE_FILE_LOCATION));
-
+		File imageFile = new File(getIntent().getStringExtra(CameraFragment.FILE_LOCATION));
 		new BitmapWorkerTask(imageView, width, height).execute(imageFile);
 	}
 }

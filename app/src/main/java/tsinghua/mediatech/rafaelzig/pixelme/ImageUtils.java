@@ -1,7 +1,14 @@
 package tsinghua.mediatech.rafaelzig.pixelme;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
+import android.util.Pair;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Class containing static methods for convenience when using pictures.
@@ -9,10 +16,11 @@ import android.graphics.Color;
  * @author Rafael da Silva Costa - 2015280364
  * @version 02/11/15
  */
-public class ColorUtils
+public class ImageUtils
 {
-
 	public static final float MAX_8BIT_COLORS = 255f;
+	public static final int   BLOCK_SIZE      = 8;
+	public static final int   COLOR_BITS      = 4;
 
 	/**
 	 * Returns the combined RGB components of the supplied parameter.
@@ -116,7 +124,7 @@ public class ColorUtils
 	 * pixel in the input, where {@code array[x][y][z]} retrieves the
 	 * aRGB component of pixel {@code z} in block {@code xy}.
 	 */
-	public static Bitmap transform(Bitmap image, int blockSize, int colorBits)
+	public static void transform(Bitmap image, int blockSize, int colorBits)
 	{
 		int width = image.getWidth();
 		int height = image.getHeight();
@@ -157,7 +165,70 @@ public class ColorUtils
 				image.setPixels(blocks[x][y], 0, blockSize, x * blockSize, y * blockSize, blockSize, blockSize);
 			}
 		}
+	}
 
-		return image;
+	public static Bitmap decodeAndTransform(File imageFile)
+	{
+		return getTransformedBitmap(imageFile.getAbsolutePath(), new BitmapFactory.Options());
+	}
+
+	private static Bitmap getTransformedBitmap(String fileLocation, BitmapFactory.Options bmOptions)
+	{
+		bmOptions.inMutable = true;
+		Bitmap image = BitmapFactory.decodeFile(fileLocation, bmOptions);
+		ImageUtils.transform(image, BLOCK_SIZE, COLOR_BITS);
+
+		return Bitmap.createBitmap(image, 0, 0, image.getWidth(), image.getHeight(), getCorrectionMatrix(fileLocation), true);
+	}
+
+	public static Bitmap decodeAndTransform(File imageFile, int parentWidth, int parentHeight)
+	{
+		String fileLocation = imageFile.getAbsolutePath();
+
+		BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+		bmOptions.inJustDecodeBounds = true;
+		BitmapFactory.decodeFile(fileLocation, bmOptions);
+
+		bmOptions.inSampleSize = calculateInSampleSize(parentWidth, parentHeight, bmOptions.outWidth, bmOptions.outHeight);
+		bmOptions.inJustDecodeBounds = false;
+
+		return getTransformedBitmap(fileLocation, bmOptions);
+	}
+
+	private static int calculateInSampleSize(int parentWidth, int parentHeight, int width, int height)
+	{
+		int scaleFactor = 1;
+		if (width > parentWidth || height > parentHeight)
+		{
+			int halfWidth = width / 2, halfHeight = height / 2;
+
+			while (halfWidth / scaleFactor > parentWidth || halfHeight / scaleFactor > parentHeight)
+				scaleFactor *= 2;
+		}
+
+		return scaleFactor;
+	}
+
+	public static Matrix getCorrectionMatrix(String imagePath)
+	{
+		Matrix matrix = new Matrix();
+
+		int orientation = 1;
+
+		try
+		{
+			orientation = new ExifInterface(imagePath).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		if (orientation == ExifInterface.ORIENTATION_ROTATE_90)
+			matrix.postRotate(90);
+		else if (orientation == ExifInterface.ORIENTATION_ROTATE_270)
+			matrix.postRotate(270);
+
+		return matrix;
 	}
 }
