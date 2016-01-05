@@ -13,9 +13,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Created by omar on 12/10/15.
- */
 public class DBHelper extends SQLiteOpenHelper {
     public static final int DATABASE_VERSION = 2;
     public static final String DATABASE_NAME = "pixelme.db";
@@ -44,7 +41,7 @@ public class DBHelper extends SQLiteOpenHelper {
      * Will insert a new entry in the database!
      *
      * @param uri The string of the URI or the full path of the file
-     * @return
+     * @return will return true if inserted!
      */
     public boolean insertEntry (String uri){
         SQLiteDatabase db = this.getWritableDatabase();
@@ -57,8 +54,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public Cursor getData(int id){
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res = db.rawQuery("SELECT * FROM " + FEED_TABLE_NAME + "WHERE id = " + id + ";", null);
-        return res;
+        return db.rawQuery("SELECT * FROM " + FEED_TABLE_NAME + "WHERE id = " + id + ";", null);
     }
 
     public Integer deleteEntry(Integer id){
@@ -67,21 +63,38 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     public ArrayList<Map<String, String>> getAllEntries(){
-        ArrayList<Map<String, String>> arrayList = new ArrayList<Map<String, String>>();
+        ArrayList<Map<String, String>> arrayList = new ArrayList<>();
 
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res = db.rawQuery("SELECT * FROM " + FEED_TABLE_NAME, null);
+        Cursor res = db.rawQuery("SELECT * FROM " + FEED_TABLE_NAME + " ORDER BY created DESC", null);
         res.moveToFirst();
 
-        while(res.isAfterLast() == false){
-            Map<String, String> map = new HashMap<String, String>();
+        while(!res.isAfterLast()){
+            Map<String, String> map = new HashMap<>();
             map.put("id", res.getString(res.getColumnIndex(FEED_COLUMN_ID)));
             map.put("uri", res.getString(res.getColumnIndex(FEED_COLUMN_URI)));
             map.put("created", res.getString(res.getColumnIndex(FEED_COLUMN_CREATED)));
             arrayList.add(map);
             res.moveToNext();
         }
+        res.close();
+        db.close();
         return arrayList;
+    }
+
+    public Map<String, String> getLastEntry(){
+        Map<String, String> lastEntry = new HashMap<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res = db.rawQuery("SELECT * FROM " + FEED_TABLE_NAME + " ORDER BY created DESC LIMIT 1", null);
+        res.moveToNext();
+        lastEntry.put("id", res.getString(res.getColumnIndex(FEED_COLUMN_ID)));
+        lastEntry.put("uri", res.getString(res.getColumnIndex(FEED_COLUMN_URI)));
+        lastEntry.put("created", res.getString(res.getColumnIndex(FEED_COLUMN_CREATED)));
+        res.close();
+        db.close();
+
+        return lastEntry;
     }
 
     public boolean deleteAll(){

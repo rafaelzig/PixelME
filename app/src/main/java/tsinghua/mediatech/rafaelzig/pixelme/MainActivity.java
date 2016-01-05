@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
@@ -21,6 +22,7 @@ public class MainActivity extends AppCompatActivity implements FeedAdapterListen
 	public static final int REQUEST_CODE = 1;
 	ListView listView;
 	DBHelper mydb;
+	FeedAdapter feedAdapter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -31,20 +33,14 @@ public class MainActivity extends AppCompatActivity implements FeedAdapterListen
 		listView = (ListView) findViewById(R.id.feed);
 
 		mydb = new DBHelper(this);
-/*
-        mydb.deleteAll();
 
-        mydb.insertEntry("android.resource://"+getPackageName()+ "/"+R.raw.video1);
-        mydb.insertEntry("android.resource://"+getPackageName()+ "/"+R.raw.video2);
-        mydb.insertEntry("android.resource://"+getPackageName()+ "/"+R.raw.video3);
-        mydb.insertEntry("android.resource://"+getPackageName()+ "/"+R.raw.video4);
-        mydb.insertEntry("android.resource://"+getPackageName()+ "/"+R.raw.video5);
+//        mydb.deleteAll();
 
-*/
+
 
 		ArrayList<Map<String, String>> arrayList = mydb.getAllEntries();
 
-		FeedAdapter feedAdapter = new FeedAdapter(this, arrayList);
+		feedAdapter = new FeedAdapter(this, arrayList);
 		feedAdapter.addFeedAdapterListener(this);
 
 		listView.setAdapter(feedAdapter);
@@ -85,8 +81,9 @@ public class MainActivity extends AppCompatActivity implements FeedAdapterListen
 		{
 			if (data.hasExtra(CameraFragment.FILE_LOCATION))
 			{
-				Toast.makeText(this, data.getExtras().getString(CameraFragment.FILE_LOCATION),
-				               Toast.LENGTH_SHORT).show();
+				String uri = data.getExtras().getString(CameraFragment.FILE_LOCATION);
+				mydb.insertEntry(uri);
+				feedAdapter.AddVideoToFeed(mydb.getLastEntry());
 			}
 		}
 	}
