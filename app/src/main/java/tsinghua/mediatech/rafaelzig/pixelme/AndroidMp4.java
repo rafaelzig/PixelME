@@ -37,7 +37,7 @@ import android.graphics.BitmapFactory;
  *
  */
 public class AndroidMp4 {
-    private static final String TAG = "AndroidMp4 EncoderHelper" ;
+    private static final String TAG = "Encoder" ;
     private SeekableByteChannel   ch;
     private int                   frameNo;
     private MP4Muxer              mux;

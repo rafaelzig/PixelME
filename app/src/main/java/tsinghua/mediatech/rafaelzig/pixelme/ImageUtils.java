@@ -19,8 +19,8 @@ import java.io.IOException;
 public class ImageUtils
 {
 	public static final float MAX_8BIT_COLORS = 255f;
-	public static final int   BLOCK_SIZE      = 8;
-	public static final int   COLOR_BITS      = 4;
+	public static final int   BLOCK_SIZE      = 4;
+	public static final int   COLOR_BITS      = 3;
 
 	/**
 	 * Returns the combined RGB components of the supplied parameter.

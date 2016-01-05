@@ -6,7 +6,9 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
+import android.widget.Toast;
 import tsinghua.mediatech.rafaelzig.pixelme.camera.CameraActivity;
+import tsinghua.mediatech.rafaelzig.pixelme.camera.CameraFragment;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -62,6 +64,19 @@ public class MainActivity extends AppCompatActivity implements FeedAdapterListen
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
+		}
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		if (resultCode == RESULT_OK && requestCode == 1234567) // Add a code here.....
+		{
+			if (data.hasExtra(CameraFragment.FILE_LOCATION))
+			{
+				Toast.makeText(this, data.getExtras().getString(CameraFragment.FILE_LOCATION),
+				               Toast.LENGTH_SHORT).show();
+			}
 		}
 	}
 

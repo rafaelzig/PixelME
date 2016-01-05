@@ -35,6 +35,7 @@ import tsinghua.mediatech.rafaelzig.pixelme.camera.dialog.ErrorDialog;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -228,7 +229,7 @@ public class CameraFragment extends Fragment
 		@Override
 		public void onImageAvailable(ImageReader reader)
 		{
-			ImageSaver imageSaver = new ImageSaver(reader.acquireNextImage(), createUniqueFile(galleryFolder, true));
+			ImageSaver imageSaver = new ImageSaver(reader.acquireNextImage(), createUniqueFile(galleryFolder, JPG_EXTENSION));
 			imageSaver.addObserver(CameraFragment.this);
 			backgroundHandler.post(imageSaver);
 		}
@@ -559,27 +560,10 @@ public class CameraFragment extends Fragment
 		super.onPause();
 	}
 
-	private File createUniqueFile(File directory, boolean isImage)
+	private File createUniqueFile(File directory, String extension)
 	{
-		File file = null;
-
-		try
-		{
-			if (isImage)
-			{
-				file = File.createTempFile("IMAGE", JPG_EXTENSION, directory);
-			}
-			else
-			{
-				file = File.createTempFile("VIDEO", MP4_EXTENSION, directory);
-			}
-		}
-		catch (IOException e)
-		{
-			Log.e(TAG, e.getMessage());
-		}
-
-		return file;
+		String filename = new SimpleDateFormat("yyyyMMdd_HHmmssSSS").format(new Date()) + extension;
+		return new File(directory, filename);
 	}
 
 	private void requestCameraPermission()
@@ -1027,8 +1011,6 @@ public class CameraFragment extends Fragment
 				           BACK_CAM_ORIENTATIONS.get(rotation) :
 				           FRONT_CAM_ORIENTATIONS.get(rotation);
 
-				Log.d(TAG, "Orientation = " + rotation);
-
 				captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, rotation);
 
 				CameraCaptureSession.CaptureCallback CaptureCallback
@@ -1123,7 +1105,7 @@ public class CameraFragment extends Fragment
 				outputFolder.mkdirs();
 			}
 
-			File outputFile = createUniqueFile(outputFolder, false);
+			File outputFile = createUniqueFile(outputFolder, MP4_EXTENSION);
 
 			try
 			{
@@ -1136,9 +1118,11 @@ public class CameraFragment extends Fragment
 
 			clearImageGallery();
 
-			Intent sendFileAddressIntent = new Intent(getActivity(), MainActivity.class);
-			sendFileAddressIntent.putExtra(FILE_LOCATION, outputFile.getAbsolutePath());
-			startActivity(sendFileAddressIntent);
+			Activity activity = getActivity();
+			Intent intent = new Intent(activity, MainActivity.class);
+			intent.putExtra(FILE_LOCATION, outputFile.getAbsolutePath());
+			activity.setResult(Activity.RESULT_OK, intent);
+			activity.finish();
 		}
 		else
 		{
