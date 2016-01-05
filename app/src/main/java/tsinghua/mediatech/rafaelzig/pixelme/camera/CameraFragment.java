@@ -43,10 +43,10 @@ import java.util.concurrent.TimeUnit;
 public class CameraFragment extends Fragment
 		implements View.OnClickListener, FragmentCompat.OnRequestPermissionsResultCallback, RecyclerViewClickObserver, Observer
 {
-	public static final String FILE_LOCATION  = "image_file_location";
-	public static final String CURRENT_CAMERA = "current camera";
-	public static final String JPG_EXTENSION  = ".jpg";
-	public static final String MP4_EXTENSION  = ".mp4";
+	public static final String FILE_LOCATION_EXTRAS_KEY = CameraFragment.class.getCanonicalName() +".ImageFileLocationExtrasKey";
+	public static final String CURRENT_CAMERA           = "current camera";
+	public static final String JPG_EXTENSION            = ".jpg";
+	public static final String MP4_EXTENSION            = ".mp4";
 	private File galleryFolder;
 
 	/**
@@ -1129,18 +1129,18 @@ public class CameraFragment extends Fragment
 	private void sendVideoToParent(String filePath)
 	{
 		Activity activity = getActivity();
-		Intent intent = new Intent(activity, MainActivity.class);
-		intent.putExtra(FILE_LOCATION, filePath);
-		activity.setResult(Activity.RESULT_OK, intent);
+		Intent sendFileLocationIntent = new Intent(activity, MainActivity.class);
+		sendFileLocationIntent.putExtra(FILE_LOCATION_EXTRAS_KEY, filePath);
+		activity.setResult(Activity.RESULT_OK, sendFileLocationIntent);
 		activity.finish();
 	}
 
 	@Override
 	public void notifyImageHolderClicked(String imagePath)
 	{
-		Intent sendFileAddressIntent = new Intent(getActivity(), SingleImageActivity.class);
-		sendFileAddressIntent.putExtra(FILE_LOCATION, imagePath);
-		startActivity(sendFileAddressIntent);
+		Intent sendFileLocationIntent = new Intent(getActivity(), SingleImageActivity.class);
+		sendFileLocationIntent.putExtra(FILE_LOCATION_EXTRAS_KEY, imagePath);
+		startActivity(sendFileLocationIntent);
 	}
 
 	@Override
