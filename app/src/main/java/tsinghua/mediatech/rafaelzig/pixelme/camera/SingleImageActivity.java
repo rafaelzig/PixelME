@@ -32,7 +32,7 @@ public class SingleImageActivity extends Activity
 
 		setContentView(imageView);
 
-		File imageFile = new File(getIntent().getStringExtra(CameraFragment.FILE_LOCATION));
+		File imageFile = new File(getIntent().getStringExtra(CameraFragment.FILE_LOCATION_EXTRAS_KEY));
 		new BitmapWorkerTask(imageView, width, height).execute(imageFile);
 	}
 }
