@@ -20,7 +20,7 @@ import java.io.IOException;
 public class ImageUtils
 {
 	public static final float MAX_8BIT_COLORS = 255f;
-	public static final int   BLOCK_SIZE      = 4;
+	public static final int   BLOCK_SIZE      = 8;
 	public static final int   COLOR_BITS      = 3;
 
 	/**
@@ -177,7 +177,7 @@ public class ImageUtils
 	{
 		bmOptions.inMutable = true;
 		Bitmap image = BitmapFactory.decodeFile(fileLocation, bmOptions);
-		ImageUtils.transform(image, BLOCK_SIZE, COLOR_BITS);
+		transform(image, BLOCK_SIZE, COLOR_BITS);
 
 		return Bitmap.createBitmap(image, 0, 0, image.getWidth(), image.getHeight(), getCorrectionMatrix(fileLocation), true);
 	}

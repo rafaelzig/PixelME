@@ -29,6 +29,7 @@
                 style="@android:style/Widget.Material.Light.Button.Borderless"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:hapticFeedbackEnabled="true"
                 android:layout_gravity="left|center_vertical"
                 android:src="@drawable/abc_ic_menu_selectall_mtrl_alpha"/>
 
@@ -38,6 +39,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:hapticFeedbackEnabled="true"
                 android:src="@mipmap/ic_add_a_photo_white_24dp"/>
 
         <ImageButton
@@ -46,6 +48,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical|right"
+                android:hapticFeedbackEnabled="true"
                 android:src="@drawable/abc_ic_menu_copy_mtrl_am_alpha"/>
 
     </FrameLayout>

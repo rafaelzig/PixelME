@@ -576,7 +576,7 @@ public class CameraFragment extends Fragment
 	@Override
 	public void onPause()
 	{
-		flickButtons();
+		flickButtons(false);
 		closeCamera();
 		stopBackgroundThread();
 		super.onPause();
@@ -836,6 +836,13 @@ public class CameraFragment extends Fragment
 		{
 			throw new RuntimeException("Interrupted while trying to lock camera opening.", e);
 		}
+	}
+
+	private void flickButtons(boolean isEnabled)
+	{
+		btnSwap.setEnabled(isEnabled);
+		btnCapture.setEnabled(isEnabled);
+		btnEncode.setEnabled(isEnabled);
 	}
 
 	private void flickButtons()
