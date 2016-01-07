@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
+import android.os.AsyncTask;
 import android.util.Pair;
 
 import java.io.File;
@@ -191,7 +192,6 @@ public class ImageUtils
 
 		bmOptions.inSampleSize = calculateInSampleSize(parentWidth, parentHeight, bmOptions.outWidth, bmOptions.outHeight);
 		bmOptions.inJustDecodeBounds = false;
-
 		return getTransformedBitmap(fileLocation, bmOptions);
 	}
 

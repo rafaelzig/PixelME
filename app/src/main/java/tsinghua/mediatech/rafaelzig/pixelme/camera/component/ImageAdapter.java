@@ -23,7 +23,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder>
 
 		for (File file : galleryFolder)
 		{
-			imagePaths.addFirst(file.getAbsolutePath());
+			imagePaths.addLast(file.getAbsolutePath());
 		}
 
 		this.observer = observer;
@@ -50,8 +50,8 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder>
 
 	public void addImage(String imagePath)
 	{
-		imagePaths.addFirst(imagePath);
-		notifyItemInserted(0);
+		imagePaths.addLast(imagePath);
+		notifyItemInserted(getItemCount() - 1);
 	}
 
 	public boolean removeImage(int position)

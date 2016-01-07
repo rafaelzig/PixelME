@@ -36,8 +36,6 @@ public class MainActivity extends AppCompatActivity implements FeedAdapterListen
 
 //        mydb.deleteAll();
 
-
-
 		ArrayList<Map<String, String>> arrayList = mydb.getAllEntries();
 
 		feedAdapter = new FeedAdapter(this, arrayList);
@@ -59,18 +57,11 @@ public class MainActivity extends AppCompatActivity implements FeedAdapterListen
 		switch (item.getItemId())
 		{
 			case R.id.camera:
-				openCameraActivity();
+				startActivityForResult(new Intent(this, CameraActivity.class), REQUEST_CODE);
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
 		}
-	}
-
-	private void openCameraActivity()
-	{
-		File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES);
-		Intent intent = new Intent(this, CameraActivity.class);
-		startActivityForResult(intent, REQUEST_CODE);
 	}
 
 	@Override

@@ -76,16 +76,11 @@ public class AndroidMp4 {
         // MP4
         spsList = new ArrayList<>();
         ppsList = new ArrayList<>();
-//        this.ch = NIOUtils.writableFileChannel(out);
-//
-//        mux = new MP4Muxer(ch, Brand.MP4);
-//
-//        outTrack = mux.addTrack(TrackType.VIDEO, fps);
     }
 
     public void encodeImage(File jpeg) throws IOException
     {
-        Bitmap read = ImageUtils.decodeAndTransform(jpeg); // Should be done on ASyncTask if possible
+        Bitmap read = ImageUtils.decodeAndTransform(jpeg);
         Picture pic = BitmapUtil.fromBitmap(read);
         if (toEncode == null) {
             toEncode = Picture.create(pic.getWidth(), pic.getHeight(), encoder.getSupportedColorSpaces()[0]);

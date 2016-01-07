@@ -25,7 +25,7 @@
             android:background="@color/control_background">
 
         <ImageButton
-                android:id="@+id/swapCamera"
+                android:id="@+id/btnSwap"
                 style="@android:style/Widget.Material.Light.Button.Borderless"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -33,7 +33,7 @@
                 android:src="@drawable/abc_ic_menu_selectall_mtrl_alpha"/>
 
         <ImageButton
-                android:id="@+id/takePicture"
+                android:id="@+id/btnCapture"
                 style="@android:style/Widget.Material.Light.Button.Borderless"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -41,11 +41,12 @@
                 android:src="@mipmap/ic_add_a_photo_white_24dp"/>
 
         <ImageButton
-                android:id="@+id/makeVideo"
+                android:id="@+id/btnEncode"
                 style="@android:style/Widget.Material.Light.Button.Borderless"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical|right"
                 android:src="@drawable/abc_ic_menu_copy_mtrl_am_alpha"/>
+
     </FrameLayout>
 </RelativeLayout>

@@ -3,8 +3,10 @@ package tsinghua.mediatech.rafaelzig.pixelme.camera;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Fragment;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.*;
@@ -23,30 +25,32 @@ import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.*;
+import android.view.animation.AnimationUtils;
 import android.widget.Toast;
-import tsinghua.mediatech.rafaelzig.pixelme.EncoderHelper;
 import tsinghua.mediatech.rafaelzig.pixelme.MainActivity;
 import tsinghua.mediatech.rafaelzig.pixelme.R;
-import tsinghua.mediatech.rafaelzig.pixelme.camera.component.ImageAdapter;
-import tsinghua.mediatech.rafaelzig.pixelme.camera.component.ImageSaver;
-import tsinghua.mediatech.rafaelzig.pixelme.camera.component.RecyclerViewClickObserver;
+import tsinghua.mediatech.rafaelzig.pixelme.camera.component.*;
 import tsinghua.mediatech.rafaelzig.pixelme.camera.dialog.ConfirmationDialog;
 import tsinghua.mediatech.rafaelzig.pixelme.camera.dialog.ErrorDialog;
 
 import java.io.File;
-import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 public class CameraFragment extends Fragment
-		implements View.OnClickListener, FragmentCompat.OnRequestPermissionsResultCallback, RecyclerViewClickObserver, Observer
+		implements View.OnClickListener, FragmentCompat.OnRequestPermissionsResultCallback, RecyclerViewClickObserver
 {
-	public static final String FILE_LOCATION_EXTRAS_KEY = CameraFragment.class.getCanonicalName() +".ImageFileLocationExtrasKey";
+	public static final String FILE_LOCATION_EXTRAS_KEY = CameraFragment.class.getCanonicalName() + ".ImageFileLocationExtrasKey";
 	public static final String CURRENT_CAMERA           = "current camera";
 	public static final String JPG_EXTENSION            = ".jpg";
 	public static final String MP4_EXTENSION            = ".mp4";
+	public static final int    PREVIEW_READY            = 6;
+	public static final int    TAKING_PICTURE           = 4;
+	public static final int    IMAGE_OUTPUT_HEIGHT      = 640;
+	public static final int IMAGE_OUTPUT_WIDTH = 480;
 	private File galleryFolder;
 
 	/**
@@ -172,7 +176,6 @@ public class CameraFragment extends Fragment
 	 */
 	private final CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback()
 	{
-
 		@Override
 		public void onOpened(@NonNull CameraDevice cameraDevice)
 		{
@@ -214,6 +217,8 @@ public class CameraFragment extends Fragment
 	 */
 	private Handler backgroundHandler;
 
+	private final Handler uiHandler = new HelperHandler(this);
+
 	/**
 	 * An {@link ImageReader} that handles still image capture.
 	 */
@@ -229,8 +234,7 @@ public class CameraFragment extends Fragment
 		@Override
 		public void onImageAvailable(ImageReader reader)
 		{
-			ImageSaver imageSaver = new ImageSaver(reader.acquireNextImage(), createUniqueFile(galleryFolder, JPG_EXTENSION));
-			imageSaver.addObserver(CameraFragment.this);
+			ImageSaver imageSaver = new ImageSaver(reader.acquireNextImage(), createUniqueFile(galleryFolder, JPG_EXTENSION), uiHandler);
 			backgroundHandler.post(imageSaver);
 		}
 	};
@@ -298,6 +302,7 @@ public class CameraFragment extends Fragment
 							runPrecaptureSequence();
 						}
 					}
+
 					break;
 				}
 				case STATE_WAITING_PRECAPTURE:
@@ -310,6 +315,7 @@ public class CameraFragment extends Fragment
 					{
 						state = STATE_WAITING_NON_PRECAPTURE;
 					}
+
 					break;
 				}
 				case STATE_WAITING_NON_PRECAPTURE:
@@ -349,7 +355,11 @@ public class CameraFragment extends Fragment
 	/**
 	 * Current camera being used
 	 */
-	private int currentCamera;
+	private int            currentCamera;
+	private ProgressDialog progressDialog;
+	private View           btnCapture;
+	private View           btnEncode;
+	private View           btnSwap;
 
 	/**
 	 * Shows a {@link Toast} on the UI thread.
@@ -448,10 +458,21 @@ public class CameraFragment extends Fragment
 	public void onViewCreated(final View view, Bundle savedInstanceState)
 	{
 		initializeInstanceVariables(savedInstanceState);
-		setupRecyclerView(view);
-		view.findViewById(R.id.swapCamera).setOnClickListener(this);
-		view.findViewById(R.id.takePicture).setOnClickListener(this);
-		view.findViewById(R.id.makeVideo).setOnClickListener(this);
+		setWidgets(view);
+	}
+
+	private void setWidgets(View view)
+	{
+		setRecyclerView(view);
+		btnSwap = view.findViewById(R.id.btnSwap);
+		btnSwap.setEnabled(false);
+		btnSwap.setOnClickListener(this);
+		btnCapture = view.findViewById(R.id.btnCapture);
+		btnCapture.setEnabled(false);
+		btnCapture.setOnClickListener(this);
+		btnEncode = view.findViewById(R.id.btnEncode);
+		btnEncode.setEnabled(false);
+		btnEncode.setOnClickListener(this);
 		textureView = (AutoFitTextureView) view.findViewById(R.id.textureView);
 	}
 
@@ -491,7 +512,7 @@ public class CameraFragment extends Fragment
 			file.delete();
 	}
 
-	private void setupRecyclerView(View view)
+	private void setRecyclerView(View view)
 	{
 		RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recyclerView);
 		imageAdapter = new ImageAdapter(galleryFolder.listFiles(), this);
@@ -555,9 +576,46 @@ public class CameraFragment extends Fragment
 	@Override
 	public void onPause()
 	{
+		flickButtons();
 		closeCamera();
 		stopBackgroundThread();
 		super.onPause();
+	}
+
+	private void closeCamera()
+	{
+		try
+		{
+			cameraOpenCloseLock.acquire();
+			if (captureSession != null)
+			{
+				captureSession.close();
+				captureSession = null;
+			}
+			if (cameraDevice != null)
+			{
+				cameraDevice.close();
+				cameraDevice = null;
+			}
+			if (imageReader != null)
+			{
+				imageReader.close();
+				imageReader = null;
+			}
+			if (mediaActionSound != null)
+			{
+				mediaActionSound.release();
+				mediaActionSound = null;
+			}
+		}
+		catch (InterruptedException e)
+		{
+			throw new RuntimeException("Interrupted while trying to lock camera closing.", e);
+		}
+		finally
+		{
+			cameraOpenCloseLock.release();
+		}
 	}
 
 	private File createUniqueFile(File directory, String extension)
@@ -619,11 +677,13 @@ public class CameraFragment extends Fragment
 					StreamConfigurationMap map = characteristics.get(
 							CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
-					if (map != null)
+					Size common;
+
+					if (map != null && (common = get640480(map.getOutputSizes(ImageFormat.JPEG))) != null)
 					{
-						Size smallest = Collections.min(Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888)),
-						                                new CompareSizesByArea());
-						imageReader = ImageReader.newInstance(smallest.getWidth(), smallest.getHeight(),
+//						Size smallest = Collections.min(collection,
+//						                                new CompareSizesByArea());
+						imageReader = ImageReader.newInstance(common.getWidth(), common.getHeight(),
 						                                      ImageFormat.JPEG, 2);
 						imageReader.setOnImageAvailableListener(onImageAvailableListener, backgroundHandler);
 
@@ -654,7 +714,7 @@ public class CameraFragment extends Fragment
 						// garbage capture data.
 						previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
 						                                width, height, displaySize.x,
-						                                displaySize.y, smallest);
+						                                displaySize.y, common);
 
 						// We fit the aspect ratio of TextureView to the size of preview we picked.
 						int orientation = getResources().getConfiguration().orientation;
@@ -685,6 +745,35 @@ public class CameraFragment extends Fragment
 			ErrorDialog.newInstance(getString(R.string.camera_error))
 			           .show(getChildFragmentManager(), FRAGMENT_DIALOG);
 		}
+	}
+
+	private Size get640480(Size[] outputSizes)
+	{
+		// Invert array since it is sorted in descending order
+		for(int i = 0; i < outputSizes.length / 2; i++)
+		{
+			Size temp = outputSizes[i];
+			outputSizes[i] = outputSizes[outputSizes.length - i - 1];
+			outputSizes[outputSizes.length - i - 1] = temp;
+		}
+
+		Size size = null;
+
+		int i = Arrays.binarySearch(outputSizes, new Size(IMAGE_OUTPUT_HEIGHT, IMAGE_OUTPUT_WIDTH), new Comparator<Size>()
+		{
+			@Override
+			public int compare(Size lhs, Size rhs)
+			{
+				return Integer.compare(lhs.getHeight(), rhs.getHeight());
+			}
+		});
+
+		if (i >= 0)
+		{
+			size = outputSizes[i];
+		}
+
+		return size;
 	}
 
 	private boolean isRotated(Activity activity, CameraCharacteristics characteristics)
@@ -724,11 +813,12 @@ public class CameraFragment extends Fragment
 
 		mediaActionSound = new MediaActionSound();
 		mediaActionSound.load(MediaActionSound.SHUTTER_CLICK);
+		mediaActionSound.load(MediaActionSound.FOCUS_COMPLETE);
+		mediaActionSound.load(MediaActionSound.START_VIDEO_RECORDING);
 
 		setupCamera(width, height);
 		configureTransform(width, height);
-		Activity activity = getActivity();
-		CameraManager manager = (CameraManager) activity.getSystemService(Context.CAMERA_SERVICE);
+		CameraManager manager = (CameraManager) getActivity().getSystemService(Context.CAMERA_SERVICE);
 
 		try
 		{
@@ -748,43 +838,11 @@ public class CameraFragment extends Fragment
 		}
 	}
 
-	/**
-	 * Closes the current {@link CameraDevice}.
-	 */
-	private void closeCamera()
+	private void flickButtons()
 	{
-		try
-		{
-			cameraOpenCloseLock.acquire();
-			if (captureSession != null)
-			{
-				captureSession.close();
-				captureSession = null;
-			}
-			if (cameraDevice != null)
-			{
-				cameraDevice.close();
-				cameraDevice = null;
-			}
-			if (imageReader != null)
-			{
-				imageReader.close();
-				imageReader = null;
-			}
-			if (mediaActionSound != null)
-			{
-				mediaActionSound.release();
-				mediaActionSound = null;
-			}
-		}
-		catch (InterruptedException e)
-		{
-			throw new RuntimeException("Interrupted while trying to lock camera closing.", e);
-		}
-		finally
-		{
-			cameraOpenCloseLock.release();
-		}
+		btnSwap.setEnabled(!btnSwap.isEnabled());
+		btnCapture.setEnabled(!btnCapture.isEnabled());
+		btnEncode.setEnabled(!btnEncode.isEnabled());
 	}
 
 	/**
@@ -792,6 +850,7 @@ public class CameraFragment extends Fragment
 	 */
 	private void startBackgroundThread()
 	{
+		new Handler(Looper.getMainLooper());
 		backgroundThread = new HandlerThread("CameraBackground");
 		backgroundThread.start();
 		backgroundHandler = new Handler(backgroundThread.getLooper());
@@ -865,6 +924,7 @@ public class CameraFragment extends Fragment
 							                                  previewRequest = previewRequestBuilder.build();
 							                                  captureSession.setRepeatingRequest(previewRequest,
 							                                                                     captureCallback, backgroundHandler);
+							                                  uiHandler.obtainMessage(PREVIEW_READY).sendToTarget();
 						                                  }
 						                                  catch (CameraAccessException e)
 						                                  {
@@ -985,6 +1045,8 @@ public class CameraFragment extends Fragment
 	 */
 	private void captureStillPicture()
 	{
+		uiHandler.obtainMessage(TAKING_PICTURE).sendToTarget();
+
 		Activity activity = getActivity();
 
 		if (activity != null && cameraDevice != null)
@@ -1022,6 +1084,7 @@ public class CameraFragment extends Fragment
 							@NonNull TotalCaptureResult result)
 					{
 						mediaActionSound.play(MediaActionSound.SHUTTER_CLICK);
+						flickButtons();
 						unlockFocus();
 					}
 				};
@@ -1065,21 +1128,24 @@ public class CameraFragment extends Fragment
 	@Override
 	public void onClick(View view)
 	{
+		view.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK);
+		view.startAnimation(AnimationUtils.loadAnimation(getActivity(), R.anim.rotate));
+
 		switch (view.getId())
 		{
-			case R.id.swapCamera:
+			case R.id.btnSwap:
 			{
 				swapCamera();
 				break;
 			}
-			case R.id.takePicture:
+			case R.id.btnCapture:
 			{
 				takePicture();
 				break;
 			}
-			case R.id.makeVideo:
+			case R.id.btnEncode:
 			{
-				makeVideo();
+				encodeVideo();
 				break;
 			}
 		}
@@ -1087,17 +1153,24 @@ public class CameraFragment extends Fragment
 
 	private void swapCamera()
 	{
+		flickButtons();
+		mediaActionSound.play(MediaActionSound.FOCUS_COMPLETE);
 		currentCamera = currentCamera == CameraCharacteristics.LENS_FACING_BACK ?
 		                CameraCharacteristics.LENS_FACING_FRONT :
 		                CameraCharacteristics.LENS_FACING_BACK;
-		closeCamera();
-		openCamera(textureView.getWidth(), textureView.getHeight());
+
+		backgroundHandler.post(new CameraCloser(cameraOpenCloseLock, captureSession, cameraDevice, imageReader, mediaActionSound, uiHandler));
 	}
 
-	private void makeVideo()
+	private void encodeVideo()
 	{
-		if (galleryFolder.listFiles().length > 0)
+		File[] images = galleryFolder.listFiles();
+
+		if (images.length > 0)
 		{
+			flickButtons();
+			mediaActionSound.play(MediaActionSound.START_VIDEO_RECORDING);
+
 			File outputFolder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), TAG);
 
 			if (!outputFolder.exists())
@@ -1105,25 +1178,25 @@ public class CameraFragment extends Fragment
 				outputFolder.mkdirs();
 			}
 
-			File outputFile = createUniqueFile(outputFolder, MP4_EXTENSION);
-
-			try
-			{
-				new EncoderHelper(galleryFolder, outputFile).encode(1);
-			}
-			catch (IOException e)
-			{
-				Log.e(TAG, e.getMessage());
-			}
-
-			clearImageGallery();
-
-			sendVideoToParent(outputFile.getAbsolutePath());
+			displayProgressDialog(images.length);
+			backgroundHandler.post(new ImagesToVideoEncoder(images, createUniqueFile(outputFolder, MP4_EXTENSION), uiHandler));
 		}
 		else
 		{
 			showToast("Please capture images first.");
 		}
+	}
+
+	private void displayProgressDialog(int imageCount)
+	{
+		// prepare for a progress bar dialog
+		progressDialog = new ProgressDialog(getActivity());
+		progressDialog.setCancelable(false);
+		progressDialog.setTitle("Encoding Video ...");
+		progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+		progressDialog.setProgress(0);
+		progressDialog.setMax(imageCount);
+		progressDialog.show();
 	}
 
 	private void sendVideoToParent(String filePath)
@@ -1138,23 +1211,10 @@ public class CameraFragment extends Fragment
 	@Override
 	public void notifyImageHolderClicked(String imagePath)
 	{
+		flickButtons();
 		Intent sendFileLocationIntent = new Intent(getActivity(), SingleImageActivity.class);
 		sendFileLocationIntent.putExtra(FILE_LOCATION_EXTRAS_KEY, imagePath);
 		startActivity(sendFileLocationIntent);
-	}
-
-	@Override
-	public void update(Observable observable, final Object imagePath)
-	{
-		getActivity().runOnUiThread(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				imageAdapter.addImage(imagePath.toString());
-				layoutManager.scrollToPosition(0);
-			}
-		});
 	}
 
 	/**
@@ -1168,6 +1228,65 @@ public class CameraFragment extends Fragment
 			// We cast here to ensure the multiplications won't overflow
 			return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
 					                   (long) rhs.getWidth() * rhs.getHeight());
+		}
+	}
+
+	private static class HelperHandler extends Handler
+	{
+		private final WeakReference<CameraFragment> weakReference;
+
+		private HelperHandler(CameraFragment parent)
+		{
+			super();
+			weakReference = new WeakReference<>(parent);
+		}
+
+		@Override
+		public void handleMessage(Message msg)
+		{
+			super.handleMessage(msg);
+
+			CameraFragment parent = weakReference.get();
+			if (parent != null)
+			{
+				switch (msg.what)
+				{
+					case ImageSaver.COMPLETE:
+						parent.imageAdapter.addImage(msg.obj.toString());
+						parent.layoutManager.scrollToPosition(parent.layoutManager.getItemCount() - 1);
+						break;
+					case ImagesToVideoEncoder.IMAGE_ENCODED:
+						parent.progressDialog.incrementProgressBy(1);
+						break;
+					case ImagesToVideoEncoder.COMPLETE:
+						parent.progressDialog.dismiss();
+						parent.flickButtons();
+						parent.clearImageGallery();
+						parent.sendVideoToParent(msg.obj.toString());
+						break;
+					case CameraFragment.TAKING_PICTURE:
+						parent.flickButtons();
+						break;
+					case CameraCloser.CAMERA_CLOSED:
+						parent.openCamera(parent.textureView.getWidth(), parent.textureView.getHeight());
+						break;
+					case CameraFragment.PREVIEW_READY:
+						parent.flickButtons();
+						break;
+					case ImagesToVideoEncoder.ERROR:
+						parent.flickButtons();
+						parent.progressDialog.dismiss();
+						parent.getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+						parent.showToast(msg.obj.toString());
+						break;
+					case ImageSaver.ERROR:
+						parent.showToast(msg.obj.toString());
+						break;
+					case CameraCloser.ERROR:
+						parent.showToast(msg.obj.toString());
+						break;
+				}
+			}
 		}
 	}
 }
