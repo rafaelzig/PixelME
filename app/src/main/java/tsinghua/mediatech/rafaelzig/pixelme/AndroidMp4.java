@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
+import android.util.Log;
 import org.jcodec.common.NIOUtils;
 import org.jcodec.common.SeekableByteChannel;
 import org.jcodec.common.model.ColorSpace;
@@ -27,8 +28,6 @@ import org.jcodec.common.model.Picture;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Environment;
-import org.jcodec.scale.Yuv420jToRgb;
 
 /**
  * This class is part of JCodec ( www.jcodec.org ) This software is distributed
@@ -38,22 +37,24 @@ import org.jcodec.scale.Yuv420jToRgb;
  *
  */
 public class AndroidMp4 {
-    private SeekableByteChannel ch;
-    private int frameNo;
-    private MP4Muxer mux;
-    private Size size;
-    private ByteBuffer sps;
-    private ByteBuffer pps;
+    private static final String TAG = "Encoder" ;
+    private SeekableByteChannel   ch;
+    private int                   frameNo;
+    private MP4Muxer              mux;
+    private Size                  size;
+    private ByteBuffer            sps;
+    private ByteBuffer            pps;
     private ArrayList<ByteBuffer> spsList;
     private ArrayList<ByteBuffer> ppsList;
-    private FramesMP4MuxerTrack outTrack;
-    private ByteBuffer _out;
-    private H264Encoder encoder;
-    private MP4Muxer muxer;
-    private Transform transform;
-    private Picture toEncode;
+    private FramesMP4MuxerTrack   outTrack;
+    private ByteBuffer            _out;
+    private H264Encoder           encoder;
+    private MP4Muxer              muxer;
+    private Transform             transform;
+    private Picture               toEncode;
 
-    public AndroidMp4(File out, int fps) throws IOException {
+    public AndroidMp4(File out, int fps) throws IOException
+    {
         this.ch = NIOUtils.writableFileChannel(out);
 
         // Muxer that will store the encoded frames
@@ -71,7 +72,7 @@ public class AndroidMp4 {
         // Transform to convert between RGB and YUV
         transform = ColorUtil.getTransform(ColorSpace.RGB, encoder.getSupportedColorSpaces()[0]);
 
-        // Encoder extra data ( SPS, PPS ) to be stored in a special place of
+        // EncoderHelper extra data ( SPS, PPS ) to be stored in a special place of
         // MP4
         spsList = new ArrayList<>();
         ppsList = new ArrayList<>();
@@ -82,13 +83,13 @@ public class AndroidMp4 {
 //        outTrack = mux.addTrack(TrackType.VIDEO, fps);
     }
 
-    public void encodeImage(File jpeg) throws IOException {
-        Bitmap read = BitmapFactory.decodeFile(jpeg.getAbsolutePath());
+    public void encodeImage(File jpeg) throws IOException
+    {
+        Bitmap read = ImageUtils.decodeAndTransform(jpeg); // Should be done on ASyncTask if possible
         Picture pic = BitmapUtil.fromBitmap(read);
         if (toEncode == null) {
             toEncode = Picture.create(pic.getWidth(), pic.getHeight(), encoder.getSupportedColorSpaces()[0]);
         }
-
 
         // Perform conversion
         transform.transform(pic, toEncode);
@@ -133,6 +134,6 @@ public class AndroidMp4 {
         // Write MP4 header and finalize recording
         muxer.writeHeader();
         NIOUtils.closeQuietly(ch);
-        System.out.println("FINISHED !");
+        Log.d(TAG, "FINISHED !");
     }
 }

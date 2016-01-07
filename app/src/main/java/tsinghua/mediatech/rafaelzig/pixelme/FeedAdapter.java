@@ -14,21 +14,18 @@ import android.widget.VideoView;
 import java.util.ArrayList;
 import java.util.Map;
 
-/**
- * Created by omar on 12/10/15.
- */
 interface FeedAdapterListener{
 
     /**
      * It will fire an event after a Delete Button is tapped in any row, and will return the id of that element.
      *
-     * @param entry_id
+     * @param entry_id only required the id of that entry, previously saved in the Database
      */
     void didDeleteEntry(int entry_id);
 }
 
 public class FeedAdapter extends BaseAdapter {
-    private ArrayList<FeedAdapterListener> listeners = new ArrayList<FeedAdapterListener>();
+    private ArrayList<FeedAdapterListener> listeners = new ArrayList<>();
     Context context;
     ArrayList<Map<String, String>> data;
     private static LayoutInflater inflater = null;
@@ -46,6 +43,14 @@ public class FeedAdapter extends BaseAdapter {
      */
     public void addFeedAdapterListener(FeedAdapterListener listener){
         listeners.add(listener);
+    }
+
+    /**
+     * @param entry a Map from the database with uri, id and created fields
+     */
+    public void AddVideoToFeed(Map<String, String> entry){
+        data.add(0, entry);
+        notifyDataSetChanged();
     }
 
     @Override

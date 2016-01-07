@@ -3,7 +3,7 @@ package tsinghua.mediatech.rafaelzig.pixelme.camera.component;
 /**
  * Created by Zig on 01/01/2016.
  */
-public interface RecyclerViewClickPosition
+public interface RecyclerViewClickObserver
 {
-	void getRecyclerViewAdapterPosition(int position);
+	void notifyImageHolderClicked(String imagePath);
 }

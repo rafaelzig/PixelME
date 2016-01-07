@@ -18,7 +18,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import tsinghua.mediatech.rafaelzig.pixelme.ColorUtils;
+import tsinghua.mediatech.rafaelzig.pixelme.ImageUtils;
 import tsinghua.mediatech.rafaelzig.pixelme.R;
 
 import java.io.File;
@@ -116,9 +116,9 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
 		bmOptions.inMutable = true;
 
 		Bitmap image = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
-		image = ColorUtils.transform(image, Integer.parseInt(lblPixelSize.getText()
-		                                                                 .toString()), Integer.parseInt(lblBitsPerColor.getText()
-		                                                                                                               .toString()));
+		ImageUtils.transform(image, Integer.parseInt(lblPixelSize.getText()
+		                                                         .toString()), Integer.parseInt(lblBitsPerColor.getText()
+		                                                                                                       .toString()));
 		mImageView.setImageBitmap(Bitmap.createBitmap(image, 0, 0, image.getWidth(), image.getHeight(), getMatrix(), true));
 	}
 
