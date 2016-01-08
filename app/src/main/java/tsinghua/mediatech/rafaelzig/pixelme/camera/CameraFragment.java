@@ -755,24 +755,11 @@ public class CameraFragment extends Fragment
 
 	private Size get640480(Size[] outputSizes)
 	{
-		// Invert array since it is sorted in descending order
-		for (int i = 0; i < outputSizes.length / 2; i++)
-		{
-			Size temp = outputSizes[i];
-			outputSizes[i] = outputSizes[outputSizes.length - i - 1];
-			outputSizes[outputSizes.length - i - 1] = temp;
-		}
+		Comparator<Size> sizeComparator = new SizeComparator();
+		Arrays.sort(outputSizes, sizeComparator);
+		int i = Arrays.binarySearch(outputSizes, new Size(IMAGE_OUTPUT_HEIGHT, IMAGE_OUTPUT_WIDTH), sizeComparator);
 
 		Size size = null;
-
-		int i = Arrays.binarySearch(outputSizes, new Size(IMAGE_OUTPUT_HEIGHT, IMAGE_OUTPUT_WIDTH), new Comparator<Size>()
-		{
-			@Override
-			public int compare(Size lhs, Size rhs)
-			{
-				return Integer.compare(lhs.getHeight(), rhs.getHeight());
-			}
-		});
 
 		if (i >= 0)
 		{
@@ -1305,6 +1292,15 @@ public class CameraFragment extends Fragment
 						break;
 				}
 			}
+		}
+	}
+
+	private static class SizeComparator implements Comparator<Size>
+	{
+		@Override
+		public int compare(Size lhs, Size rhs)
+		{
+			return Integer.compare(lhs.getHeight(), rhs.getHeight());
 		}
 	}
 }
