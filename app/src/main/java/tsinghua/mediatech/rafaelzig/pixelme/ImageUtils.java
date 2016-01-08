@@ -5,8 +5,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
-import android.os.AsyncTask;
-import android.util.Pair;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,8 +18,6 @@ import java.io.IOException;
 public class ImageUtils
 {
 	public static final float MAX_8BIT_COLORS = 255f;
-	public static final int   BLOCK_SIZE      = 8;
-	public static final int   COLOR_BITS      = 3;
 
 	/**
 	 * Returns the combined RGB components of the supplied parameter.
@@ -45,7 +41,7 @@ public class ImageUtils
 	 */
 	public static int getRGB(int r, int g, int b)
 	{
-		return ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | ((b & 0xFF) << 0);
+		return ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | ((b & 0xFF));
 	}
 
 	public static int getRGB(int aRGB)
@@ -65,7 +61,7 @@ public class ImageUtils
 	public static int getARGB(int a, int r, int g, int b)
 	{
 		return ((a & 0xFF) << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8)
-				| ((b & 0xFF) << 0);
+				| ((b & 0xFF));
 	}
 
 	/**
@@ -80,7 +76,7 @@ public class ImageUtils
 	 */
 	public static int getARGB(int r, int g, int b)
 	{
-		return (0xFF << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | ((b & 0xFF) << 0);
+		return (0xFF << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | ((b & 0xFF));
 	}
 
 	/**
@@ -121,9 +117,8 @@ public class ImageUtils
 	 * every pixel in the input.
 	 *
 	 * @param image The Bitmap object to be parsed.
-	 * @return 3D array of integers containing the aRGB components of every
-	 * pixel in the input, where {@code array[x][y][z]} retrieves the
-	 * aRGB component of pixel {@code z} in block {@code xy}.
+	 *              pixel in the input, where {@code array[x][y][z]} retrieves the
+	 *              aRGB component of pixel {@code z} in block {@code xy}.
 	 */
 	public static void transform(Bitmap image, int blockSize, int colorBits)
 	{
@@ -168,21 +163,21 @@ public class ImageUtils
 		}
 	}
 
-	public static Bitmap decodeAndTransform(File imageFile)
+	public static Bitmap decodeAndTransform(File imageFile, int macroblockSize, int colorBits)
 	{
-		return getTransformedBitmap(imageFile.getAbsolutePath(), new BitmapFactory.Options());
+		return getTransformedBitmap(imageFile.getAbsolutePath(), new BitmapFactory.Options(), macroblockSize, colorBits);
 	}
 
-	private static Bitmap getTransformedBitmap(String fileLocation, BitmapFactory.Options bmOptions)
+	private static Bitmap getTransformedBitmap(String fileLocation, BitmapFactory.Options bmOptions, int macroblockSize, int colorBits)
 	{
 		bmOptions.inMutable = true;
 		Bitmap image = BitmapFactory.decodeFile(fileLocation, bmOptions);
-		transform(image, BLOCK_SIZE, COLOR_BITS);
+		transform(image, macroblockSize, colorBits);
 
 		return Bitmap.createBitmap(image, 0, 0, image.getWidth(), image.getHeight(), getCorrectionMatrix(fileLocation), true);
 	}
 
-	public static Bitmap decodeAndTransform(File imageFile, int parentWidth, int parentHeight)
+	public static Bitmap decodeAndTransform(File imageFile, int parentWidth, int parentHeight, int macroblockSize, int colorBits)
 	{
 		String fileLocation = imageFile.getAbsolutePath();
 
@@ -192,7 +187,7 @@ public class ImageUtils
 
 		bmOptions.inSampleSize = calculateInSampleSize(parentWidth, parentHeight, bmOptions.outWidth, bmOptions.outHeight);
 		bmOptions.inJustDecodeBounds = false;
-		return getTransformedBitmap(fileLocation, bmOptions);
+		return getTransformedBitmap(fileLocation, bmOptions, macroblockSize, colorBits);
 	}
 
 	private static int calculateInSampleSize(int parentWidth, int parentHeight, int width, int height)

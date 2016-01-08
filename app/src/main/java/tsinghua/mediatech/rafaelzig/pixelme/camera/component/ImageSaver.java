@@ -42,7 +42,7 @@ public class ImageSaver implements Runnable
 		byte[] bytes = new byte[buffer.remaining()];
 		buffer.get(bytes);
 
-		String errorMessage = new String();
+		String errorMessage = "";
 
 		try (FileOutputStream output = new FileOutputStream(file))
 		{

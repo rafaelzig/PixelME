@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="color_bits_default_value">3</integer>
+    <integer name="color_bits_min_value">1</integer>
+    <integer name="color_bits_max_value">7</integer>
+    <integer name="macroblock_size_default_value">8</integer>
+    <integer name="macroblock_size_min_value">2</integer>
+    <integer name="macroblock_size_max_value">16</integer>
+</resources>

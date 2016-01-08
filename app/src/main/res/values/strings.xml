@@ -8,5 +8,10 @@
     <string name="test_date">Test Date</string>
     <string name="delete">Delete</string>
     <string name="description_info">Info</string>
-    <string name="intro_message">Hello World</string>
+    <string name="color_bits">Bits per color component</string>
+    <string name="macroblock_size">Size of each pixel</string>
+    <string name="activity_name_settings">Settings</string>
+    <string name="swap_camera_string">Swap Cameras</string>
+    <string name="capture_image_string">Capture Image</string>
+    <string name="encode_video_string">Encode Video</string>
 </resources>

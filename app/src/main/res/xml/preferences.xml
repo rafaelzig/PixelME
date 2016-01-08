@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <tsinghua.mediatech.rafaelzig.pixelme.camera.dialog.MacroblocksPreference
+            android:defaultValue="@integer/macroblock_size_default_value"
+            android:key="preference_macroblock_size"
+            android:title="@string/macroblock_size"/>
+
+    <tsinghua.mediatech.rafaelzig.pixelme.camera.dialog.ColorBitPreference
+        android:defaultValue="@integer/color_bits_default_value"
+        android:key="preference_color_bits"
+        android:title="@string/color_bits"/>
+</PreferenceScreen>

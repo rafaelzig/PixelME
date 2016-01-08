@@ -6,6 +6,7 @@ import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -15,6 +16,7 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
 import android.media.MediaActionSound;
 import android.os.*;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v13.app.FragmentCompat;
 import android.support.v4.app.ActivityCompat;
@@ -50,7 +52,7 @@ public class CameraFragment extends Fragment
 	public static final int    PREVIEW_READY            = 6;
 	public static final int    TAKING_PICTURE           = 4;
 	public static final int    IMAGE_OUTPUT_HEIGHT      = 640;
-	public static final int IMAGE_OUTPUT_WIDTH = 480;
+	public static final int    IMAGE_OUTPUT_WIDTH       = 480;
 	private File galleryFolder;
 
 	/**
@@ -360,6 +362,7 @@ public class CameraFragment extends Fragment
 	private View           btnCapture;
 	private View           btnEncode;
 	private View           btnSwap;
+	private View           btnSettings;
 
 	/**
 	 * Shows a {@link Toast} on the UI thread.
@@ -473,6 +476,9 @@ public class CameraFragment extends Fragment
 		btnEncode = view.findViewById(R.id.btnEncode);
 		btnEncode.setEnabled(false);
 		btnEncode.setOnClickListener(this);
+		btnSettings = view.findViewById(R.id.btnSettings);
+		btnSettings.setEnabled(false);
+		btnSettings.setOnClickListener(this);
 		textureView = (AutoFitTextureView) view.findViewById(R.id.textureView);
 	}
 
@@ -750,7 +756,7 @@ public class CameraFragment extends Fragment
 	private Size get640480(Size[] outputSizes)
 	{
 		// Invert array since it is sorted in descending order
-		for(int i = 0; i < outputSizes.length / 2; i++)
+		for (int i = 0; i < outputSizes.length / 2; i++)
 		{
 			Size temp = outputSizes[i];
 			outputSizes[i] = outputSizes[outputSizes.length - i - 1];
@@ -815,6 +821,7 @@ public class CameraFragment extends Fragment
 		mediaActionSound.load(MediaActionSound.SHUTTER_CLICK);
 		mediaActionSound.load(MediaActionSound.FOCUS_COMPLETE);
 		mediaActionSound.load(MediaActionSound.START_VIDEO_RECORDING);
+		mediaActionSound.load(MediaActionSound.STOP_VIDEO_RECORDING);
 
 		setupCamera(width, height);
 		configureTransform(width, height);
@@ -843,6 +850,7 @@ public class CameraFragment extends Fragment
 		btnSwap.setEnabled(isEnabled);
 		btnCapture.setEnabled(isEnabled);
 		btnEncode.setEnabled(isEnabled);
+		btnSettings.setEnabled(isEnabled);
 	}
 
 	private void flickButtons()
@@ -850,6 +858,7 @@ public class CameraFragment extends Fragment
 		btnSwap.setEnabled(!btnSwap.isEnabled());
 		btnCapture.setEnabled(!btnCapture.isEnabled());
 		btnEncode.setEnabled(!btnEncode.isEnabled());
+		btnSettings.setEnabled(!btnSettings.isEnabled());
 	}
 
 	/**
@@ -1141,20 +1150,18 @@ public class CameraFragment extends Fragment
 		switch (view.getId())
 		{
 			case R.id.btnSwap:
-			{
 				swapCamera();
 				break;
-			}
 			case R.id.btnCapture:
-			{
 				takePicture();
 				break;
-			}
 			case R.id.btnEncode:
-			{
 				encodeVideo();
 				break;
-			}
+			case R.id.btnSettings:
+				mediaActionSound.play(MediaActionSound.STOP_VIDEO_RECORDING);
+				startActivity(new Intent(getActivity(), SettingsActivity.class));
+				break;
 		}
 	}
 
@@ -1185,8 +1192,12 @@ public class CameraFragment extends Fragment
 				outputFolder.mkdirs();
 			}
 
+			SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+			int macroblockSize = sharedPref.getInt(SettingsActivity.PREFERENCE_MACROBLOCK_SIZE, R.integer.macroblock_size_default_value);
+			int colorBits = sharedPref.getInt(SettingsActivity.PREFERENCE_COLOR_BITS, R.integer.color_bits_default_value);
+
 			displayProgressDialog(images.length);
-			backgroundHandler.post(new ImagesToVideoEncoder(images, createUniqueFile(outputFolder, MP4_EXTENSION), uiHandler));
+			backgroundHandler.post(new ImagesToVideoEncoder(images, createUniqueFile(outputFolder, MP4_EXTENSION), uiHandler, macroblockSize, colorBits));
 		}
 		else
 		{

@@ -1,34 +1,31 @@
 package tsinghua.mediatech.rafaelzig.pixelme;
 
 import android.content.Intent;
-import android.net.Uri;
-import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.preference.PreferenceManager;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
-import android.widget.Toast;
 import tsinghua.mediatech.rafaelzig.pixelme.camera.CameraActivity;
 import tsinghua.mediatech.rafaelzig.pixelme.camera.CameraFragment;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements FeedAdapterListener
 {
 	public static final int REQUEST_CODE = 1;
-	ListView listView;
-	DBHelper mydb;
+	ListView    listView;
+	DBHelper    mydb;
 	FeedAdapter feedAdapter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main2);
+		setContentView(R.layout.activity_main);
+		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
 		listView = (ListView) findViewById(R.id.feed);
 
@@ -47,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements FeedAdapterListen
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
-		getMenuInflater().inflate(R.menu.menu_main2, menu);
+		getMenuInflater().inflate(R.menu.menu_main, menu);
 		return true;
 	}
 

@@ -33,13 +33,21 @@
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value=".MainActivity"/>
         </activity>
+        <activity
+                android:name=".camera.SettingsActivity"
+                android:label="@string/activity_name_settings"
+                android:parentActivityName=".camera.CameraActivity" >
+            <meta-data
+                    android:name="android.support.PARENT_ACTIVITY"
+                    android:value=".camera.CameraActivity" />
+        </activity>
         <activity android:name=".camera.SingleImageActivity"
-                  android:theme="@style/MaterialTheme">
+                  android:theme="@style/MaterialTheme"
+                  android:parentActivityName=".camera.CameraActivity" >
 
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value=".camera.CameraActivity"/>
         </activity>
     </application>
-
 </manifest>

@@ -12,7 +12,6 @@ import android.os.Bundle;
  */
 public class ErrorDialog extends DialogFragment
 {
-
 	private static final String ARG_MESSAGE = "message";
 
 	public static ErrorDialog newInstance(String message)

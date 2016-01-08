@@ -6,11 +6,7 @@ import android.media.ImageReader;
 import android.media.MediaActionSound;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
-import tsinghua.mediatech.rafaelzig.pixelme.AndroidMp4;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -19,8 +15,8 @@ import java.util.concurrent.Semaphore;
 public class CameraCloser implements Runnable
 {
 	private static final String TAG           = CameraCloser.class.getSimpleName();
-	public static final int    CAMERA_CLOSED = 5;
-	public static final int    ERROR         = -3;
+	public static final  int    CAMERA_CLOSED = 5;
+	public static final  int    ERROR         = -3;
 	private Semaphore            cameraOpenCloseLock;
 	private CameraCaptureSession captureSession;
 	private CameraDevice         cameraDevice;
@@ -41,7 +37,7 @@ public class CameraCloser implements Runnable
 	@Override
 	public void run()
 	{
-		String errorMessage = new String();
+		String errorMessage = "";
 
 		try
 		{
