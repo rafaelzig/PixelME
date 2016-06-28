@@ -1,0 +1,2 @@
+# PixelME
+PixelMe is an Android application that creates video sequences with a pixelated filter applied. The sequences are made of a set of images captured by the camera of smartphone devices. In order to find a good compromise between data compression rate and computational burden on the mobile device, PixelMe utilizes the H.264 encoding standard to efficiently compress the processed input, producing the output video sequence. To achieve the desired pixelated effect, however, a series of processing steps are performed to each of the captured images.
